@@ -6,7 +6,6 @@ pub mod hp_ui;
 pub mod player;
 pub mod util;
 
-
 pub struct OnGamePlugin;
 
 impl Plugin for OnGamePlugin {
@@ -64,8 +63,10 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
         Node {
             width: percent(100),
             height: percent(100),
-            align_items: AlignItems::FlexStart,
-            justify_content: JustifyContent::FlexEnd,
+            align_items: AlignItems::FlexEnd,
+            justify_content: JustifyContent::FlexStart,
+            flex_direction: FlexDirection::Column,
+            row_gap: px(10.0),
             ..default()
         },
         children![
@@ -149,7 +150,11 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
     )
 }
 
-fn setup_playing(mut commands: Commands, asset_server: Res<AssetServer>, mut current_score: ResMut<CurrentScore>) {
+fn setup_playing(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut current_score: ResMut<CurrentScore>,
+) {
     reset_current_score(&mut current_score);
     // spawn a camera
     commands.spawn((
@@ -201,11 +206,15 @@ fn start_stopwatch_res(mut stopwatch: ResMut<StopWatch>) {
     stopwatch.start();
 }
 
-fn update_time_ui(stopwatch: Res<StopWatch>, mut current_score: ResMut<CurrentScore>, mut time_ui_query: Query<&mut Text, With<TimeUI>>) {
+fn update_time_ui(
+    stopwatch: Res<StopWatch>,
+    mut current_score: ResMut<CurrentScore>,
+    mut time_ui_query: Query<&mut Text, With<TimeUI>>,
+) {
     for mut time_ui in &mut time_ui_query {
         let current_time = stopwatch.now();
-        **time_ui = format!("Time: {:.2}\n Kill: {}", current_time,current_score.0.kill);
-        current_score.0.live_time = current_time;
+        **time_ui = format!("Time: {:.2}\n Kill: {}", current_time, current_score.0.kill);
+        current_score.0.survival_time = current_time;
     }
 }
 
@@ -257,7 +266,24 @@ fn update_pause_button(
 #[derive(Default, Clone, Copy)]
 pub struct Score {
     pub kill: i32,
-    pub live_time: f32,
+    pub survival_time: f32,
+}
+
+impl Score {
+    pub fn score(&self) -> f32 {
+        (self.kill as f32 * self.survival_time).sqrt()
+    }
+}
+
+impl std::fmt::Display for Score {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!(
+            "Kill: {}\nSurvival Time: {:.2}\nScore: {:.2}",
+            self.kill,
+            self.survival_time,
+            self.score()
+        ))
+    }
 }
 
 #[derive(Resource)]
@@ -268,7 +294,7 @@ fn reset_current_score(current_score: &mut CurrentScore) {
 }
 
 #[derive(Resource)]
-pub struct ScoreList(Vec<Score>);
+pub struct ScoreList(pub Vec<Score>);
 
 fn push_score_list(mut score_list: ResMut<ScoreList>, current_score: Res<CurrentScore>) {
     score_list.0.push(current_score.0);

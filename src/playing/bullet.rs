@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use super::util::*;
+use crate::state;
 
 #[derive(Component)]
 pub struct Bullet {
@@ -49,6 +50,7 @@ pub fn spawn_bullet(
             velocity: forward.normalize() * BULLET_SPEED,
             damage,
         },
+        DespawnOnExit(state::GameState::OnGame),
         Transform::from_translation(translation).looking_to(forward, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 1.0))),
         MeshMaterial3d(materials.add(color)),
