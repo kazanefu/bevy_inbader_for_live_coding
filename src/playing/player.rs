@@ -31,11 +31,11 @@ pub struct HP(pub f32);
 
 #[derive(Component, Default)]
 pub struct Control {
-    mass: f32,
-    force: Vec3,
-    acceleration: Vec3,
-    velocity: Vec3,
-    speed_limit: f32,
+    pub mass: f32,
+    pub force: Vec3,
+    pub acceleration: Vec3,
+    pub velocity: Vec3,
+    pub speed_limit: f32,
 }
 
 impl Control {
