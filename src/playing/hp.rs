@@ -7,7 +7,7 @@ use rand::prelude::*;
 #[derive(Component)]
 pub struct HPUi;
 
-pub fn check_player_hp(
+pub fn update_player_hp(
     mut commands: Commands,
     mut ui_query: Query<&mut Text, With<HPUi>>,
     player: Query<(Entity, &HP), With<super::player::Player>>,
@@ -16,14 +16,14 @@ pub fn check_player_hp(
     let mut ui = match ui_query.single_mut() {
         Ok(ui) => ui,
         Err(_) => {
-            println!("0 or more than 1 HP UI exist");
+            warn!("Expected exactly one HP UI entity, but found none or multiple.");
             return;
         }
     };
     let (player_entity, hp) = match player.single() {
         Ok(p) => p,
         Err(_) => {
-            println!("0 or more than 1 player exist");
+            warn!("Expected exactly one Player entity, but found none or multiple.");
             return;
         }
     };
@@ -34,7 +34,7 @@ pub fn check_player_hp(
     }
 }
 
-pub fn check_hp(
+pub fn handle_enemy_death(
     mut commands: Commands,
     query: Query<(Entity, &HP, &Character), Without<Dead>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -49,18 +49,7 @@ pub fn check_hp(
             commands.entity(entity).insert(Dead);
             if character == Character::Enemy {
                 current_score.0.kill += 1;
-                let mut rng = rand::rng();
-                let x = rng.random_range(-9..=9);
-                super::enemy::spawn_enemy(
-                    &mut commands,
-                    &mut meshes,
-                    &mut materials,
-                    Vec3 {
-                        x: x as f32,
-                        y: 0.0,
-                        z: 10.0,
-                    },
-                );
+                super::enemy::spawn_random_enemy(&mut commands, &mut meshes, &mut materials);
             }
         }
     }

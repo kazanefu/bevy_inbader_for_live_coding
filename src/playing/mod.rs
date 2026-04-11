@@ -1,8 +1,8 @@
-use crate::{playing::hp_ui::HPUi, state};
+use crate::{playing::hp::HPUi, state};
 use bevy::prelude::*;
 pub mod bullet;
 pub mod enemy;
-pub mod hp_ui;
+pub mod hp;
 pub mod player;
 pub mod util;
 
@@ -29,7 +29,7 @@ impl Plugin for OnGamePlugin {
                     update_time_ui,
                     update_pause_button,
                     update_start_button,
-                    (hp_ui::check_player_hp, hp_ui::check_hp).chain(),
+                    (hp::update_player_hp, hp::handle_enemy_death).chain(),
                 )
                     .run_if(in_state(state::GameState::OnGame)),
             )

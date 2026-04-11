@@ -11,6 +11,9 @@ pub struct Bullet {
 }
 
 const BULLET_SPEED: f32 = 30.0;
+const PLAYER_BULLET_DAMAGE: f32 = 30.0;
+const ENEMY_BULLET_DAMAGE: f32 = 3.0;
+const BULLET_COLLISION_RADIUS: f32 = 1.0;
 
 pub struct BulletPlugin;
 
@@ -41,8 +44,8 @@ pub fn spawn_bullet(
     materials: &mut Assets<StandardMaterial>,
 ) {
     let (color, damage) = match owner {
-        Character::Player => (Color::srgb(0.0, 1.0, 1.0), 30.0),
-        Character::Enemy => (Color::srgb(1.0, 0.0, 1.0), 3.0),
+        Character::Player => (Color::srgb(0.0, 1.0, 1.0), PLAYER_BULLET_DAMAGE),
+        Character::Enemy => (Color::srgb(1.0, 0.0, 1.0), ENEMY_BULLET_DAMAGE),
     };
     commands.spawn((
         Bullet {
@@ -74,7 +77,7 @@ pub fn bullet_collision(
             let distance = bullet_transform
                 .translation
                 .distance(character_transform.translation);
-            if distance <= 1.0 {
+            if distance <= BULLET_COLLISION_RADIUS {
                 hp.0 -= bullet.damage;
                 commands.entity(bullet_entity).insert(Dead);
             }

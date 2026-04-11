@@ -5,7 +5,7 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(crate::state::GameState::OnGame), setup_enemys)
+        app.add_systems(OnEnter(crate::state::GameState::OnGame), setup_enemies)
             .add_systems(
                 Update,
                 (enemy_shoot, delete_out_of_range_enemy).run_if(
@@ -20,6 +20,32 @@ impl Plugin for EnemyPlugin {
 pub struct Enemy;
 
 const SHOOT_RATE: i32 = 3;
+const SHOOT_CHANCE_MAX: i32 = 10;
+const SHOOT_INTERVAL: f32 = 0.3;
+const ENEMY_MAX_HP: f32 = 100.0;
+
+const ENEMY_SPAWN_X_RANGE: std::ops::RangeInclusive<i32> = -9..=9;
+const ENEMY_SPAWN_Y: f32 = 0.0;
+const ENEMY_SPAWN_Z: f32 = 10.0;
+
+pub fn spawn_random_enemy(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) {
+    let mut rng = rand::rng();
+    let x = rng.random_range(ENEMY_SPAWN_X_RANGE);
+    spawn_enemy(
+        commands,
+        meshes,
+        materials,
+        Vec3 {
+            x: x as f32,
+            y: ENEMY_SPAWN_Y,
+            z: ENEMY_SPAWN_Z,
+        },
+    );
+}
 
 type LivingEnemy = (With<Enemy>, Without<Dead>);
 
@@ -31,7 +57,7 @@ pub fn enemy_shoot(
 ) {
     for (transform, &owner, mut interval) in query {
         let mut rng = rand::rng();
-        let random_val = rng.random_range(0..10);
+        let random_val = rng.random_range(0..SHOOT_CHANCE_MAX);
         let is_ready = interval.is_ready();
         if is_ready {
             interval.reset();
@@ -49,7 +75,7 @@ pub fn enemy_shoot(
     }
 }
 
-fn setup_enemys(
+fn setup_enemies(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -61,8 +87,8 @@ fn setup_enemys(
             &mut materials,
             Vec3 {
                 x: (i * 3) as f32,
-                y: 0.0,
-                z: 10.0,
+                y: ENEMY_SPAWN_Y,
+                z: ENEMY_SPAWN_Z,
             },
         );
     }
@@ -83,9 +109,9 @@ pub fn spawn_enemy(
         Enemy,
         super::util::Interval {
             time: 0.0,
-            interval: 0.3,
+            interval: SHOOT_INTERVAL,
         },
-        HP(100.0),
+        HP(ENEMY_MAX_HP),
         Transform::from_translation(translation).looking_to(-Vec3::Z, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -127,18 +153,7 @@ fn delete_out_of_range_enemy(
             || !(ENEMY_NEG_Z_LIMIT..=ENEMY_Z_LIMIT).contains(&z)
         {
             commands.entity(entity).insert(Dead);
-            let mut rng = rand::rng();
-            let x = rng.random_range(-9..=9);
-            spawn_enemy(
-                &mut commands,
-                &mut meshes,
-                &mut materials,
-                Vec3 {
-                    x: x as f32,
-                    y: 0.0,
-                    z: 10.0,
-                },
-            );
+            spawn_random_enemy(&mut commands, &mut meshes, &mut materials);
         }
     }
 }
