@@ -4,18 +4,18 @@ pub mod bullet;
 pub mod enemy;
 pub mod hp_ui;
 pub mod player;
+pub mod util;
 
-#[derive(Component, PartialEq, Eq, Clone, Copy)]
-pub enum Character {
-    Player,
-    Enemy,
-}
+
 pub struct OnGamePlugin;
 
 impl Plugin for OnGamePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(StopWatch::new(false))
+            .insert_resource(CurrentScore(Score::default()))
+            .insert_resource(ScoreList(Vec::new()))
             .init_state::<OnGameState>()
+            .add_plugins(util::UtilPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(enemy::EnemyPlugin)
@@ -33,7 +33,8 @@ impl Plugin for OnGamePlugin {
                     (hp_ui::check_player_hp, hp_ui::check_hp).chain(),
                 )
                     .run_if(in_state(state::GameState::OnGame)),
-            );
+            )
+            .add_systems(OnExit(state::GameState::OnGame), push_score_list);
     }
 }
 
@@ -148,7 +149,8 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
     )
 }
 
-fn setup_playing(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_playing(mut commands: Commands, asset_server: Res<AssetServer>, mut current_score: ResMut<CurrentScore>) {
+    reset_current_score(&mut current_score);
     // spawn a camera
     commands.spawn((
         Camera3d::default(),
@@ -199,9 +201,11 @@ fn start_stopwatch_res(mut stopwatch: ResMut<StopWatch>) {
     stopwatch.start();
 }
 
-fn update_time_ui(stopwatch: Res<StopWatch>, mut time_ui_query: Query<&mut Text, With<TimeUI>>) {
+fn update_time_ui(stopwatch: Res<StopWatch>, mut current_score: ResMut<CurrentScore>, mut time_ui_query: Query<&mut Text, With<TimeUI>>) {
     for mut time_ui in &mut time_ui_query {
-        **time_ui = format!("Time: {:.2}", stopwatch.now())
+        let current_time = stopwatch.now();
+        **time_ui = format!("Time: {:.2}\n Kill: {}", current_time,current_score.0.kill);
+        current_score.0.live_time = current_time;
     }
 }
 
@@ -248,4 +252,24 @@ fn update_pause_button(
             }
         }
     }
+}
+
+#[derive(Default, Clone, Copy)]
+pub struct Score {
+    pub kill: i32,
+    pub live_time: f32,
+}
+
+#[derive(Resource)]
+pub struct CurrentScore(Score);
+
+fn reset_current_score(current_score: &mut CurrentScore) {
+    current_score.0 = Score::default();
+}
+
+#[derive(Resource)]
+pub struct ScoreList(Vec<Score>);
+
+fn push_score_list(mut score_list: ResMut<ScoreList>, current_score: Res<CurrentScore>) {
+    score_list.0.push(current_score.0);
 }

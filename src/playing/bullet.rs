@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
-use crate::playing::player;
-
-use super::Character;
+use super::util::*;
 
 #[derive(Component)]
 pub struct Bullet {
@@ -27,7 +25,7 @@ impl Plugin for BulletPlugin {
     }
 }
 
-pub fn move_bullet(query: Query<(&mut Transform, &Bullet)>,time: Res<Time>) {
+pub fn move_bullet(query: Query<(&mut Transform, &Bullet)>, time: Res<Time>) {
     for (mut transform, bullet) in query {
         transform.translation += bullet.velocity * time.delta_secs();
     }
@@ -37,41 +35,30 @@ pub fn spawn_bullet(
     commands: &mut Commands,
     owner: Character,
     translation: Vec3,
+    forward: Dir3,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
 ) {
-    match owner {
-        Character::Player => {
-            commands.spawn((
-                Bullet {
-                    owner,
-                    velocity: Vec3::Z * BULLET_SPEED,
-                    damage: 30.0,
-                },
-                Transform::from_translation(translation),
-                Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 1.0))),
-                MeshMaterial3d(materials.add(Color::srgb(0.2, 0.2, 1.0))),
-            ));
-        }
-        Character::Enemy => {
-            commands.spawn((
-                Bullet {
-                    owner,
-                    velocity: -Vec3::Z * BULLET_SPEED,
-                    damage: 10.0,
-                },
-                Transform::from_translation(translation),
-                Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 1.0))),
-                MeshMaterial3d(materials.add(Color::srgb(1.0, 0.2, 0.2))),
-            ));
-        }
-    }
+    let (color, damage) = match owner {
+        Character::Player => (Color::srgb(0.2, 0.2, 1.0), 30.0),
+        Character::Enemy => (Color::srgb(0.2, 0.2, 1.0), 3.0),
+    };
+    commands.spawn((
+        Bullet {
+            owner,
+            velocity: forward.normalize() * BULLET_SPEED,
+            damage,
+        },
+        Transform::from_translation(translation).looking_to(forward, Vec3::Y),
+        Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 1.0))),
+        MeshMaterial3d(materials.add(color)),
+    ));
 }
 
 pub fn bullet_collision(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &Transform, &Bullet)>,
-    mut character_query: Query<(&Transform, &Character, &mut super::player::HP)>,
+    bullet_query: Query<(Entity, &Transform, &Bullet), Without<Dead>>,
+    mut character_query: Query<(&Transform, &Character, &mut HP), Without<Dead>>,
 ) {
     for (bullet_entity, bullet_transform, bullet) in bullet_query {
         for (character_transform, character, mut hp) in character_query.iter_mut() {
@@ -83,7 +70,7 @@ pub fn bullet_collision(
                 .distance(character_transform.translation);
             if distance <= 1.0 {
                 hp.0 -= bullet.damage;
-                commands.entity(bullet_entity).despawn();
+                commands.entity(bullet_entity).insert(Dead);
             }
         }
     }

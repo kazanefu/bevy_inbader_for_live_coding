@@ -1,10 +1,9 @@
 use core::f32;
 
-use bevy::{math::NormedVectorSpace, prelude::*};
+use bevy::prelude::*;
 
 use super::bullet;
-
-use super::Character;
+use super::util::*;
 
 const PLAYER_FORCE: f32 = 3.0;
 const PLAYER_SPEED_LIMIT: f32 = 10.0;
@@ -15,7 +14,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(OnEnter(crate::state::GameState::OnGame), player_spawn)
             .add_systems(
                 Update,
-                (update_velocity, move_player, shoot).run_if(
+                (move_player, shoot).run_if(
                     in_state(crate::state::GameState::OnGame)
                         .and(in_state(super::OnGameState::Running)),
                 ),
@@ -25,35 +24,6 @@ impl Plugin for PlayerPlugin {
 
 #[derive(Component)]
 pub struct Player;
-
-#[derive(Component)]
-pub struct HP(pub f32);
-
-#[derive(Component, Default)]
-pub struct Control {
-    pub mass: f32,
-    pub force: Vec3,
-    pub acceleration: Vec3,
-    pub velocity: Vec3,
-    pub speed_limit: f32,
-}
-
-impl Control {
-    pub fn add_force(&mut self, force: Vec3) {
-        self.force = force;
-    }
-    pub fn speed(&self) -> f32 {
-        self.velocity.norm()
-    }
-    pub fn calculate_velocity(&mut self, delta_time: f32) {
-        self.acceleration = self.force / self.mass;
-        self.velocity += self.acceleration * delta_time;
-        if self.speed() >= self.speed_limit {
-            self.velocity = self.velocity.normalize() * self.speed_limit;
-        }
-        self.force = Vec3::ZERO;
-    }
-}
 
 pub fn player_spawn(
     mut commands: Commands,
@@ -74,14 +44,6 @@ pub fn player_spawn(
             ..default()
         },
     ));
-}
-
-fn update_velocity(query: Query<(&mut Control, &mut Transform)>, time: Res<Time>) {
-    for (mut control, mut transform) in query {
-        control.calculate_velocity(time.delta_secs());
-        transform.translation += control.velocity * time.delta_secs();
-        transform.translation.x = transform.translation.x.clamp(-20.0, 20.0);
-    }
 }
 
 fn move_player(mut query: Query<&mut Control, With<Player>>, keyboard: Res<ButtonInput<KeyCode>>) {
@@ -121,6 +83,7 @@ pub fn shoot(
                 &mut commands,
                 owner,
                 transform.translation,
+                transform.forward(),
                 &mut meshes,
                 &mut materials,
             );

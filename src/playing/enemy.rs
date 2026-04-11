@@ -1,4 +1,5 @@
-use bevy::{prelude::*, state::commands};
+use super::util::*;
+use bevy::prelude::*;
 use rand::prelude::*;
 pub struct EnemyPlugin;
 
@@ -7,7 +8,7 @@ impl Plugin for EnemyPlugin {
         app.add_systems(OnEnter(crate::state::GameState::OnGame), setup_enemys)
             .add_systems(
                 Update,
-                (tick_interval, shoot).run_if(
+                (enemy_shoot).run_if(
                     in_state(crate::state::GameState::OnGame)
                         .and(in_state(super::OnGameState::Running)),
                 ),
@@ -18,33 +19,13 @@ impl Plugin for EnemyPlugin {
 #[derive(Component)]
 pub struct Enemy;
 
-#[derive(Component)]
-pub struct Interval {
-    time: f32,
-    interval: f32,
-}
+const SHOOT_RATE: i32 = 3;
 
-impl Interval {
-    pub fn tick(&mut self, delta_time: f32) {
-        self.time += delta_time;
-    }
-    pub fn reset(&mut self) {
-        self.time = 0.0;
-    }
-    pub fn is_ready(&self) -> bool {
-        self.time >= self.interval
-    }
-}
+type LivingEnemy = (With<Enemy>,Without<Dead>);
 
-fn tick_interval(time: Res<Time>, query: Query<&mut Interval>) {
-    for mut interval in query {
-        interval.tick(time.delta_secs());
-    }
-}
-
-pub fn shoot(
+pub fn enemy_shoot(
     mut commands: Commands,
-    query: Query<(&Transform, &super::Character, &mut Interval), With<Enemy>>,
+    query: Query<(&Transform, &Character, &mut super::util::Interval), LivingEnemy>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -55,11 +36,12 @@ pub fn shoot(
         if is_ready {
             interval.reset();
         }
-        if is_ready && random_val <= 3 {
+        if is_ready && random_val <= SHOOT_RATE {
             super::bullet::spawn_bullet(
                 &mut commands,
                 owner,
                 transform.translation,
+                transform.forward(),
                 &mut meshes,
                 &mut materials,
             );
@@ -77,12 +59,14 @@ fn setup_enemys(
             &mut commands,
             &mut meshes,
             &mut materials,
-            Vec3::X * (i * 3) as f32,
+            Vec3{x: (i * 3) as f32, y: 0.0, z: 10.0},
         );
     }
 }
 
-fn spawn_enemy(
+const ENEMY_SPEED_LIMIT: f32 = 2.0;
+
+pub fn spawn_enemy(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -90,20 +74,22 @@ fn spawn_enemy(
 ) {
     commands.spawn((
         DespawnOnExit(crate::state::GameState::OnGame),
-        super::Character::Enemy,
+        Character::Enemy,
         Enemy,
-        Interval {
+        super::util::Interval {
             time: 0.0,
             interval: 0.3,
         },
-        super::player::HP(100.0),
-        Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
+        HP(100.0),
+        Transform::from_translation(translation).looking_to(-Vec3::Z, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb(0.2, 0.7, 1.0))),
-        super::player::Control {
-            speed_limit: 2.0,
+        MeshMaterial3d(materials.add(Color::srgb(1.0, 0.1, 0.1))),
+        Control {
+            speed_limit: ENEMY_SPEED_LIMIT,
             mass: 1.0,
             ..default()
         },
     ));
 }
+
+
