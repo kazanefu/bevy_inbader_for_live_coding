@@ -271,7 +271,7 @@ pub struct Score {
 
 impl Score {
     pub fn score(&self) -> f32 {
-        (self.kill as f32 * self.survival_time).sqrt()
+        (self.kill as f32 * self.survival_time.min(100.0)).sqrt()
     }
 }
 
