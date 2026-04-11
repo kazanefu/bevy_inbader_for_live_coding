@@ -1,3 +1,4 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use bevy::prelude::*;
 mod home;
 mod state;
@@ -12,5 +13,4 @@ fn main() {
         .add_plugins(playing::OnGamePlugin)
         .add_plugins(result::ResultPlugin)
         .run();
-    println!("Hello, world!");
 }
