@@ -31,3 +31,11 @@ pub fn check_player_hp(
         game_state.set(crate::state::GameState::Result);
     }
 }
+
+pub fn check_hp(mut commands: Commands, query: Query<(Entity, &super::player::HP)>) {
+    for (entity, hp) in query {
+        if hp.0 <= 0.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}

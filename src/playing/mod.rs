@@ -30,7 +30,7 @@ impl Plugin for OnGamePlugin {
                     update_time_ui,
                     update_pause_button,
                     update_start_button,
-                    hp_ui::check_player_hp,
+                    (hp_ui::check_player_hp, hp_ui::check_hp).chain(),
                 )
                     .run_if(in_state(state::GameState::OnGame)),
             );
@@ -132,7 +132,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
                 TextLayout::new_with_justify(Justify::Center),
                 TextColor::BLACK,
             ),
-                        (
+            (
                 Text::new(""),
                 HPUi,
                 TextFont {

@@ -6,12 +6,12 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(crate::state::GameState::OnGame), setup_enemys)
             .add_systems(
-            Update,
-            (tick_interval, shoot).run_if(
-                in_state(crate::state::GameState::OnGame)
-                    .and(in_state(super::OnGameState::Running)),
-            ),
-        );
+                Update,
+                (tick_interval, shoot).run_if(
+                    in_state(crate::state::GameState::OnGame)
+                        .and(in_state(super::OnGameState::Running)),
+                ),
+            );
     }
 }
 
@@ -51,8 +51,11 @@ pub fn shoot(
     for (transform, &owner, mut interval) in query {
         let mut rng = rand::rng();
         let random_val = rng.random_range(0..10);
-        if interval.is_ready() && random_val <= 3 {
+        let is_ready = interval.is_ready();
+        if is_ready {
             interval.reset();
+        }
+        if is_ready && random_val <= 3 {
             super::bullet::spawn_bullet(
                 &mut commands,
                 owner,
@@ -70,7 +73,12 @@ fn setup_enemys(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     for i in -3..=3 {
-        spawn_enemy(&mut commands, &mut meshes, &mut materials, Vec3::X * (i * 3) as f32);
+        spawn_enemy(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            Vec3::X * (i * 3) as f32,
+        );
     }
 }
 
@@ -84,6 +92,10 @@ fn spawn_enemy(
         DespawnOnExit(crate::state::GameState::OnGame),
         super::Character::Enemy,
         Enemy,
+        Interval {
+            time: 0.0,
+            interval: 0.3,
+        },
         super::player::HP(100.0),
         Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),

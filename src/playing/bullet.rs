@@ -81,7 +81,7 @@ pub fn bullet_collision(
             let distance = bullet_transform
                 .translation
                 .distance(character_transform.translation);
-            if distance <= 2.0 {
+            if distance <= 1.0 {
                 hp.0 -= bullet.damage;
                 commands.entity(bullet_entity).despawn();
             }

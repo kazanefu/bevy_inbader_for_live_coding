@@ -81,7 +81,6 @@ fn update_velocity(query: Query<(&mut Control, &mut Transform)>, time: Res<Time>
         control.calculate_velocity(time.delta_secs());
         transform.translation += control.velocity * time.delta_secs();
         transform.translation.x = transform.translation.x.clamp(-20.0, 20.0);
-        println!("{}", transform.translation.x);
     }
 }
 
