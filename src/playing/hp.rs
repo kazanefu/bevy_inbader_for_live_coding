@@ -2,7 +2,6 @@ use crate::playing::CurrentScore;
 
 use super::util::*;
 use bevy::prelude::*;
-use rand::prelude::*;
 
 #[derive(Component)]
 pub struct HPUi;
