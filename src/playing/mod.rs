@@ -1,21 +1,38 @@
-use crate::state;
+use crate::{playing::hp_ui::HPUi, state};
 use bevy::prelude::*;
-pub mod player;
-pub mod enemy;
 pub mod bullet;
+pub mod enemy;
 pub mod hp_ui;
+pub mod player;
+
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
+pub enum Character {
+    Player,
+    Enemy,
+}
 pub struct OnGamePlugin;
 
 impl Plugin for OnGamePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(StopWatch::new(false))
+            .init_state::<OnGameState>()
+            .add_plugins(player::PlayerPlugin)
+            .add_plugins(bullet::BulletPlugin)
+            .add_plugins(enemy::EnemyPlugin)
             .add_systems(
                 OnEnter(state::GameState::OnGame),
                 (setup_playing, start_stopwatch_res),
             )
             .add_systems(
                 Update,
-                (update_stopwatch, update_time_ui,update_pause_button,update_start_button).run_if(in_state(state::GameState::OnGame)),
+                (
+                    update_stopwatch,
+                    update_time_ui,
+                    update_pause_button,
+                    update_start_button,
+                    hp_ui::check_player_hp,
+                )
+                    .run_if(in_state(state::GameState::OnGame)),
             );
     }
 }
@@ -31,6 +48,13 @@ struct StartButton;
 
 #[derive(Component)]
 struct TimeUI;
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+pub enum OnGameState {
+    #[default]
+    Running,
+    Paused,
+}
 
 fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
     (
@@ -107,7 +131,19 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
                 },
                 TextLayout::new_with_justify(Justify::Center),
                 TextColor::BLACK,
-            )
+            ),
+                        (
+                Text::new(""),
+                HPUi,
+                TextFont {
+                    font: asset_server
+                        .load("embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"),
+                    font_size: 40.0,
+                    ..default()
+                },
+                TextLayout::new_with_justify(Justify::Center),
+                TextColor::WHITE,
+            ),
         ],
     )
 }
@@ -116,8 +152,8 @@ fn setup_playing(mut commands: Commands, asset_server: Res<AssetServer>) {
     // spawn a camera
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 10.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-        DespawnOnExit(state::GameState::Home),
+        Transform::from_xyz(0.0, 30.0, 0.0).looking_at(Vec3::ZERO, Vec3::Z),
+        DespawnOnExit(state::GameState::OnGame),
     ));
     commands.spawn(setup_ui(&asset_server));
 }
@@ -163,10 +199,7 @@ fn start_stopwatch_res(mut stopwatch: ResMut<StopWatch>) {
     stopwatch.start();
 }
 
-fn update_time_ui(
-    stopwatch: Res<StopWatch>,
-    mut time_ui_query: Query<&mut Text, With<TimeUI>>,
-) {
+fn update_time_ui(stopwatch: Res<StopWatch>, mut time_ui_query: Query<&mut Text, With<TimeUI>>) {
     for mut time_ui in &mut time_ui_query {
         **time_ui = format!("Time: {:.2}", stopwatch.now())
     }
@@ -176,13 +209,14 @@ type StartButtonInputs = (Changed<Interaction>, With<StartButton>);
 fn update_start_button(
     mut query: Query<(&Interaction, &mut BackgroundColor), StartButtonInputs>,
     mut stopwatch: ResMut<StopWatch>,
+    mut game_state: ResMut<NextState<OnGameState>>,
 ) {
     for (interaction, mut background_color) in query.iter_mut() {
         match interaction {
             Interaction::Pressed => {
                 background_color.0 = Color::srgb(0.5, 0.5, 0.5);
                 stopwatch.start();
-
+                game_state.set(OnGameState::Running);
             }
             Interaction::Hovered => {
                 background_color.0 = Color::srgb(0.7, 0.7, 0.7);
@@ -197,13 +231,14 @@ type PauseButtonInputs = (Changed<Interaction>, With<PauseButton>);
 fn update_pause_button(
     mut query: Query<(&Interaction, &mut BackgroundColor), PauseButtonInputs>,
     mut stopwatch: ResMut<StopWatch>,
+    mut game_state: ResMut<NextState<OnGameState>>,
 ) {
     for (interaction, mut background_color) in query.iter_mut() {
         match interaction {
             Interaction::Pressed => {
                 background_color.0 = Color::srgb(0.5, 0.5, 0.5);
                 stopwatch.pause();
-
+                game_state.set(OnGameState::Paused);
             }
             Interaction::Hovered => {
                 background_color.0 = Color::srgb(0.7, 0.7, 0.7);
