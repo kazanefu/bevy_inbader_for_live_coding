@@ -41,8 +41,8 @@ pub fn spawn_bullet(
     materials: &mut Assets<StandardMaterial>,
 ) {
     let (color, damage) = match owner {
-        Character::Player => (Color::srgb(0.2, 0.2, 1.0), 30.0),
-        Character::Enemy => (Color::srgb(0.2, 0.2, 1.0), 3.0),
+        Character::Player => (Color::srgb(0.0, 1.0, 1.0), 30.0),
+        Character::Enemy => (Color::srgb(1.0, 0.0, 1.0), 3.0),
     };
     commands.spawn((
         Bullet {
@@ -53,7 +53,11 @@ pub fn spawn_bullet(
         DespawnOnExit(state::GameState::OnGame),
         Transform::from_translation(translation).looking_to(forward, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 1.0))),
-        MeshMaterial3d(materials.add(color)),
+        MeshMaterial3d(materials.add(StandardMaterial{
+            base_color: Color::BLACK,
+            emissive: color.to_linear(),
+            ..default()
+        })),
     ));
 }
 

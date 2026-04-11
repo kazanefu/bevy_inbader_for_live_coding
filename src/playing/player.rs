@@ -35,9 +35,13 @@ pub fn player_spawn(
         Character::Player,
         Player,
         HP(100.0),
-        Transform::from_xyz(0.0, 0.0, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 0.0, -8.0).looking_at(Vec3::ZERO, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb(0.2, 0.7, 1.0))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::BLACK,
+            emissive: Color::srgb(0.1, 0.1, 1.0).to_linear(),
+            ..default()
+        })),
         Control {
             speed_limit: PLAYER_SPEED_LIMIT,
             mass: 1.0,

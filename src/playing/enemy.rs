@@ -8,7 +8,7 @@ impl Plugin for EnemyPlugin {
         app.add_systems(OnEnter(crate::state::GameState::OnGame), setup_enemys)
             .add_systems(
                 Update,
-                (enemy_shoot).run_if(
+                (enemy_shoot, delete_out_of_range_enemy).run_if(
                     in_state(crate::state::GameState::OnGame)
                         .and(in_state(super::OnGameState::Running)),
                 ),
@@ -21,7 +21,7 @@ pub struct Enemy;
 
 const SHOOT_RATE: i32 = 3;
 
-type LivingEnemy = (With<Enemy>,Without<Dead>);
+type LivingEnemy = (With<Enemy>, Without<Dead>);
 
 pub fn enemy_shoot(
     mut commands: Commands,
@@ -59,7 +59,11 @@ fn setup_enemys(
             &mut commands,
             &mut meshes,
             &mut materials,
-            Vec3{x: (i * 3) as f32, y: 0.0, z: 10.0},
+            Vec3 {
+                x: (i * 3) as f32,
+                y: 0.0,
+                z: 10.0,
+            },
         );
     }
 }
@@ -72,6 +76,7 @@ pub fn spawn_enemy(
     materials: &mut Assets<StandardMaterial>,
     translation: Vec3,
 ) {
+    let mut rng = rand::rng();
     commands.spawn((
         DespawnOnExit(crate::state::GameState::OnGame),
         Character::Enemy,
@@ -83,13 +88,57 @@ pub fn spawn_enemy(
         HP(100.0),
         Transform::from_translation(translation).looking_to(-Vec3::Z, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb(1.0, 0.1, 0.1))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::BLACK,
+            emissive: Color::srgb(1.0, 0.1, 0.1).to_linear(),
+            ..default()
+        })),
         Control {
             speed_limit: ENEMY_SPEED_LIMIT,
             mass: 1.0,
+            velocity: Vec3 {
+                x: rng.random_range(-1.0..1.0),
+                y: 0.0,
+                z: rng.random_range(-1.0..0.0),
+            },
             ..default()
         },
     ));
 }
 
+const ENEMY_X_LIMIT: f32 = 19.0;
+const ENEMY_NEG_X_LIMIT: f32 = -19.0;
+const ENEMY_Z_LIMIT: f32 = 15.0;
+const ENEMY_NEG_Z_LIMIT: f32 = -6.0;
 
+fn delete_out_of_range_enemy(
+    query: Query<(&Transform, Entity), LivingEnemy>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    for (translation, entity) in query
+        .iter()
+        .map(|(transform, entity)| (transform.translation, entity))
+    {
+        let x = translation.x;
+        let z = translation.z;
+        if !(ENEMY_NEG_X_LIMIT..=ENEMY_X_LIMIT).contains(&x)
+            || !(ENEMY_NEG_Z_LIMIT..=ENEMY_Z_LIMIT).contains(&z)
+        {
+            commands.entity(entity).insert(Dead);
+            let mut rng = rand::rng();
+            let x = rng.random_range(-9..=9);
+            spawn_enemy(
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+                Vec3 {
+                    x: x as f32,
+                    y: 0.0,
+                    z: 10.0,
+                },
+            );
+        }
+    }
+}
