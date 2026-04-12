@@ -11,7 +11,7 @@ fn main() {
     bevy::asset::embedded_asset!(app, "img/invader_background.png");
     app.add_plugins(state::GameStatePlugin)
         .add_plugins(home::HomePlugin)
-        .add_plugins(playing::OnGamePlugin)
+        .add_plugins(playing::PlayingPlugin)
         .add_plugins(result::ResultPlugin)
         .run();
 }

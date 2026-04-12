@@ -15,12 +15,12 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(crate::state::GameState::OnGame), spawn_player)
+        app.add_systems(OnEnter(crate::state::GameState::Playing), spawn_player)
             .add_systems(
                 Update,
                 (move_player, shoot).run_if(
-                    in_state(crate::state::GameState::OnGame)
-                        .and(in_state(super::OnGameState::Running)),
+                    in_state(crate::state::GameState::Playing)
+                        .and(in_state(super::InGameState::Running)),
                 ),
             );
     }
@@ -35,7 +35,7 @@ pub fn spawn_player(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn((
-        DespawnOnExit(crate::state::GameState::OnGame),
+        DespawnOnExit(crate::state::GameState::Playing),
         Character::Player,
         Player,
         HP(PLAYER_MAX_HP),

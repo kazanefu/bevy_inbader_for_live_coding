@@ -5,12 +5,12 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(crate::state::GameState::OnGame), setup_enemies)
+        app.add_systems(OnEnter(crate::state::GameState::Playing), setup_enemies)
             .add_systems(
                 Update,
                 (enemy_shoot, delete_out_of_range_enemy).run_if(
-                    in_state(crate::state::GameState::OnGame)
-                        .and(in_state(super::OnGameState::Running)),
+                    in_state(crate::state::GameState::Playing)
+                        .and(in_state(super::InGameState::Running)),
                 ),
             );
     }
@@ -104,7 +104,7 @@ pub fn spawn_enemy(
 ) {
     let mut rng = rand::rng();
     commands.spawn((
-        DespawnOnExit(crate::state::GameState::OnGame),
+        DespawnOnExit(crate::state::GameState::Playing),
         Character::Enemy,
         Enemy,
         super::util::Interval {

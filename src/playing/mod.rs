@@ -8,20 +8,20 @@ pub mod util;
 
 const TIME_LIMIT: f32 = 100.0;
 
-pub struct OnGamePlugin;
+pub struct PlayingPlugin;
 
-impl Plugin for OnGamePlugin {
+impl Plugin for PlayingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(StopWatch::new(false))
             .insert_resource(CurrentScore(Score::default()))
             .insert_resource(ScoreList(Vec::new()))
-            .init_state::<OnGameState>()
+            .init_state::<InGameState>()
             .add_plugins(util::UtilPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(enemy::EnemyPlugin)
             .add_systems(
-                OnEnter(state::GameState::OnGame),
+                OnEnter(state::GameState::Playing),
                 (setup_playing, start_stopwatch_res),
             )
             .add_systems(
@@ -33,9 +33,9 @@ impl Plugin for OnGamePlugin {
                     update_start_button,
                     (hp::update_player_hp, hp::handle_enemy_death).chain(),
                 )
-                    .run_if(in_state(state::GameState::OnGame)),
+                    .run_if(in_state(state::GameState::Playing)),
             )
-            .add_systems(OnExit(state::GameState::OnGame), push_score_list);
+            .add_systems(OnExit(state::GameState::Playing), push_score_list);
     }
 }
 
@@ -52,7 +52,7 @@ struct StartButton;
 struct TimeUI;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
-pub enum OnGameState {
+pub enum InGameState {
     #[default]
     Running,
     Paused,
@@ -61,7 +61,7 @@ pub enum OnGameState {
 fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
     (
         UI,
-        DespawnOnExit(state::GameState::OnGame),
+        DespawnOnExit(state::GameState::Playing),
         Node {
             width: percent(100),
             height: percent(100),
@@ -164,7 +164,7 @@ fn setup_playing(
     commands.spawn((
         Camera3d::default(),
         Transform::from_xyz(0.0, 30.0, 0.0).looking_at(Vec3::ZERO, Vec3::Z),
-        DespawnOnExit(state::GameState::OnGame),
+        DespawnOnExit(state::GameState::Playing),
     ));
     commands.spawn(setup_ui(&asset_server));
     commands.spawn((
@@ -177,7 +177,7 @@ fn setup_playing(
             ..default()
         })),
         Transform::from_xyz(0.0, 0.0, -10.0),
-        DespawnOnExit(state::GameState::OnGame),
+        DespawnOnExit(state::GameState::Playing),
     ));
 }
 
@@ -242,14 +242,14 @@ type StartButtonInputs = (Changed<Interaction>, With<StartButton>);
 fn update_start_button(
     mut query: Query<(&Interaction, &mut BackgroundColor), StartButtonInputs>,
     mut stopwatch: ResMut<StopWatch>,
-    mut game_state: ResMut<NextState<OnGameState>>,
+    mut game_state: ResMut<NextState<InGameState>>,
 ) {
     for (interaction, mut background_color) in query.iter_mut() {
         match interaction {
             Interaction::Pressed => {
                 background_color.0 = Color::srgb(0.5, 0.5, 0.5);
                 stopwatch.start();
-                game_state.set(OnGameState::Running);
+                game_state.set(InGameState::Running);
             }
             Interaction::Hovered => {
                 background_color.0 = Color::srgb(0.7, 0.7, 0.7);
@@ -264,14 +264,14 @@ type PauseButtonInputs = (Changed<Interaction>, With<PauseButton>);
 fn update_pause_button(
     mut query: Query<(&Interaction, &mut BackgroundColor), PauseButtonInputs>,
     mut stopwatch: ResMut<StopWatch>,
-    mut game_state: ResMut<NextState<OnGameState>>,
+    mut game_state: ResMut<NextState<InGameState>>,
 ) {
     for (interaction, mut background_color) in query.iter_mut() {
         match interaction {
             Interaction::Pressed => {
                 background_color.0 = Color::srgb(0.5, 0.5, 0.5);
                 stopwatch.pause();
-                game_state.set(OnGameState::Paused);
+                game_state.set(InGameState::Paused);
             }
             Interaction::Hovered => {
                 background_color.0 = Color::srgb(0.7, 0.7, 0.7);

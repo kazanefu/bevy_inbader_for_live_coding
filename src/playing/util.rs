@@ -7,8 +7,8 @@ impl Plugin for UtilPlugin {
         app.add_systems(
             Update,
             (tick_interval, update_velocity, cleanup_dead).run_if(
-                in_state(crate::state::GameState::OnGame)
-                    .and(in_state(super::OnGameState::Running)),
+                in_state(crate::state::GameState::Playing)
+                    .and(in_state(super::InGameState::Running)),
             ),
         );
     }

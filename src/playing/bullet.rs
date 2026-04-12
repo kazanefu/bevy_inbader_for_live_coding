@@ -22,8 +22,8 @@ impl Plugin for BulletPlugin {
         app.add_systems(
             Update,
             (bullet_collision, move_bullet).run_if(
-                in_state(crate::state::GameState::OnGame)
-                    .and(in_state(super::OnGameState::Running)),
+                in_state(crate::state::GameState::Playing)
+                    .and(in_state(super::InGameState::Running)),
             ),
         );
     }
@@ -53,7 +53,7 @@ pub fn spawn_bullet(
             velocity: forward.normalize() * BULLET_SPEED,
             damage,
         },
-        DespawnOnExit(state::GameState::OnGame),
+        DespawnOnExit(state::GameState::Playing),
         Transform::from_translation(translation).looking_to(forward, Vec3::Y),
         Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 1.0))),
         MeshMaterial3d(materials.add(StandardMaterial{
