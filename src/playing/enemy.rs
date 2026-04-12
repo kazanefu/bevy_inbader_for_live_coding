@@ -47,11 +47,10 @@ pub fn spawn_random_enemy(
     );
 }
 
-type LivingEnemy = (With<Enemy>, Without<Dead>);
 
 pub fn enemy_shoot(
     mut commands: Commands,
-    query: Query<(&Transform, &Character, &mut super::util::Interval), LivingEnemy>,
+    query: Query<(&Transform, &Character, &mut super::util::Interval), With<Enemy>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -138,7 +137,7 @@ const ENEMY_Z_LIMIT: f32 = 15.0;
 const ENEMY_NEG_Z_LIMIT: f32 = -6.0;
 
 fn delete_out_of_range_enemy(
-    query: Query<(&Transform, Entity), LivingEnemy>,
+    query: Query<(&Transform, Entity), With<Enemy>>,
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -152,7 +151,7 @@ fn delete_out_of_range_enemy(
         if !(ENEMY_NEG_X_LIMIT..=ENEMY_X_LIMIT).contains(&x)
             || !(ENEMY_NEG_Z_LIMIT..=ENEMY_Z_LIMIT).contains(&z)
         {
-            commands.entity(entity).insert(Dead);
+            commands.entity(entity).despawn();
             spawn_random_enemy(&mut commands, &mut meshes, &mut materials);
         }
     }

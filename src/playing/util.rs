@@ -6,7 +6,7 @@ impl Plugin for UtilPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (tick_interval, update_velocity, cleanup_dead).run_if(
+            (tick_interval, update_velocity).run_if(
                 in_state(crate::state::GameState::Playing)
                     .and(in_state(super::InGameState::Running)),
             ),
@@ -78,14 +78,5 @@ fn update_velocity(query: Query<(&mut Control, &mut Transform)>, time: Res<Time>
         control.calculate_velocity(time.delta_secs());
         transform.translation += control.velocity * time.delta_secs();
         transform.translation.x = transform.translation.x.clamp(-20.0, 20.0);
-    }
-}
-
-#[derive(Component)]
-pub struct Dead;
-
-pub fn cleanup_dead(mut commands: Commands, query: Query<Entity, With<Dead>>) {
-    for e in &query {
-        commands.entity(e).despawn();
     }
 }

@@ -35,7 +35,7 @@ pub fn update_player_hp(
 
 pub fn handle_enemy_death(
     mut commands: Commands,
-    query: Query<(Entity, &HP, &Character), Without<Dead>>,
+    query: Query<(Entity, &HP, &Character)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut current_score: ResMut<CurrentScore>,
@@ -45,7 +45,7 @@ pub fn handle_enemy_death(
             continue;
         }
         if hp.0 <= 0.0 {
-            commands.entity(entity).insert(Dead);
+            commands.entity(entity).despawn();
             if character == Character::Enemy {
                 current_score.0.kill += 1;
                 super::enemy::spawn_random_enemy(&mut commands, &mut meshes, &mut materials);
