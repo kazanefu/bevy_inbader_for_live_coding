@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::util::*;
+use super::utils::*;
 use crate::state;
 
 #[derive(Component)]
@@ -54,7 +54,7 @@ pub fn spawn_bullet(
             velocity: forward.normalize() * BULLET_SPEED,
             damage,
         },
-        super::util::Interval {
+        super::utils::Interval {
             time: 0.0,
             interval: BULLET_LIFE_TIME,
         },
@@ -94,7 +94,7 @@ pub fn bullet_collision(
 
 pub fn remove_time_out_bullet(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &super::util::Interval), With<Bullet>>,
+    bullet_query: Query<(Entity, &super::utils::Interval), With<Bullet>>,
 ) {
     for (entity, interval) in bullet_query {
         if interval.is_ready() {

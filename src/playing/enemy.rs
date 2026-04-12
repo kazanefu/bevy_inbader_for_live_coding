@@ -1,4 +1,4 @@
-use super::util::*;
+use super::utils::*;
 use bevy::prelude::*;
 use rand::prelude::*;
 pub struct EnemyPlugin;
@@ -50,7 +50,7 @@ pub fn spawn_random_enemy(
 
 pub fn enemy_shoot(
     mut commands: Commands,
-    query: Query<(&Transform, &Character, &mut super::util::Interval), With<Enemy>>,
+    query: Query<(&Transform, &Character, &mut super::utils::Interval), With<Enemy>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -106,7 +106,7 @@ pub fn spawn_enemy(
         DespawnOnExit(crate::state::GameState::Playing),
         Character::Enemy,
         Enemy,
-        super::util::Interval {
+        super::utils::Interval {
             time: 0.0,
             interval: SHOOT_INTERVAL,
         },

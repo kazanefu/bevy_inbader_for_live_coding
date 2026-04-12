@@ -4,7 +4,7 @@ pub mod bullet;
 pub mod enemy;
 pub mod hp;
 pub mod player;
-pub mod util;
+pub mod utils;
 
 const TIME_LIMIT: f32 = 100.0;
 
@@ -16,7 +16,7 @@ impl Plugin for PlayingPlugin {
             .insert_resource(CurrentScore(Score::default()))
             .insert_resource(ScoreList(Vec::new()))
             .init_state::<InGameState>()
-            .add_plugins(util::UtilPlugin)
+            .add_plugins(utils::UtilPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(enemy::EnemyPlugin)

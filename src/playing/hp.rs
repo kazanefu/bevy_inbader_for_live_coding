@@ -1,6 +1,6 @@
 use crate::playing::CurrentScore;
 
-use super::util::*;
+use super::utils::*;
 use bevy::prelude::*;
 
 #[derive(Component)]

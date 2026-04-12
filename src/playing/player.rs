@@ -3,7 +3,7 @@ use core::f32;
 use bevy::prelude::*;
 
 use super::bullet;
-use super::util::*;
+use super::utils::*;
 
 const PLAYER_FORCE: f32 = 3.0;
 const PLAYER_SPEED_LIMIT: f32 = 10.0;
