@@ -132,7 +132,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
                     ..default()
                 },
                 TextLayout::new_with_justify(Justify::Center),
-                TextColor::BLACK,
+                TextColor::WHITE,
             ),
             (
                 Text::new(""),
@@ -154,6 +154,8 @@ fn setup_playing(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut current_score: ResMut<CurrentScore>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     reset_current_score(&mut current_score);
     // spawn a camera
@@ -163,6 +165,18 @@ fn setup_playing(
         DespawnOnExit(state::GameState::OnGame),
     ));
     commands.spawn(setup_ui(&asset_server));
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(50.0, 50.0))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color_texture: Some(
+                asset_server.load("embedded://bevy_invader_for_live_coding/img/invader_background.png"),
+            ),
+            unlit: true,
+            ..default()
+        })),
+        Transform::from_xyz(0.0, 0.0, -10.0),
+        DespawnOnExit(state::GameState::OnGame),
+    ));
 }
 
 #[derive(Resource, Default)]

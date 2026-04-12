@@ -8,6 +8,7 @@ fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
     bevy::asset::embedded_asset!(app, "fonts/NotoSansJP-Bold.ttf");
+    bevy::asset::embedded_asset!(app, "img/invader_background.png");
     app.add_plugins(state::GameStatePlugin)
         .add_plugins(home::HomePlugin)
         .add_plugins(playing::OnGamePlugin)
