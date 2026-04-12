@@ -6,6 +6,8 @@ pub mod hp;
 pub mod player;
 pub mod util;
 
+const TIME_LIMIT: f32 = 100.0;
+
 pub struct OnGamePlugin;
 
 impl Plugin for OnGamePlugin {
@@ -224,11 +226,15 @@ fn update_time_ui(
     stopwatch: Res<StopWatch>,
     mut current_score: ResMut<CurrentScore>,
     mut time_ui_query: Query<&mut Text, With<TimeUI>>,
+    mut game_state: ResMut<NextState<crate::state::GameState>>,
 ) {
     for mut time_ui in &mut time_ui_query {
         let current_time = stopwatch.now();
-        **time_ui = format!("Time: {:.2}\n Kill: {}", current_time, current_score.0.kill);
+        **time_ui = format!("Time: {:.2}s / 100s\n Kill: {}", current_time, current_score.0.kill);
         current_score.0.survival_time = current_time;
+        if current_time >= TIME_LIMIT {
+            game_state.set(state::GameState::Result);
+        }
     }
 }
 
