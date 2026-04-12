@@ -5,7 +5,7 @@ pub enum GameState {
     /// Initial screen.
     #[default]
     Home,
-    /// Playing.
+    /// Playing screen.
     Playing,
     /// GameResult screen.
     Result,
