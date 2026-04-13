@@ -92,7 +92,7 @@ fn bullet_collision(
 }
 
 
-pub fn remove_time_out_bullet(
+fn remove_time_out_bullet(
     mut commands: Commands,
     bullet_query: Query<(Entity, &super::utils::Interval), With<Bullet>>,
 ) {
