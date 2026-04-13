@@ -46,7 +46,7 @@ struct UI;
 struct PauseButton;
 
 #[derive(Component)]
-struct StartButton;
+struct ResumeButton;
 
 #[derive(Component)]
 struct TimeUI;
@@ -74,7 +74,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
         children![
             (
                 Button,
-                StartButton,
+                ResumeButton,
                 Node {
                     width: percent(20),
                     height: percent(10),
@@ -86,7 +86,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
                 BorderColor::all(Color::WHITE),
                 BackgroundColor(Color::WHITE),
                 children![(
-                    Text::new("Start"),
+                    Text::new("Resume"),
                     TextFont {
                         font: asset_server.load(
                             "embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"
@@ -238,7 +238,7 @@ fn update_time_ui(
     }
 }
 
-type StartButtonInputs = (Changed<Interaction>, With<StartButton>);
+type StartButtonInputs = (Changed<Interaction>, With<ResumeButton>);
 fn update_start_button(
     mut query: Query<(&Interaction, &mut BackgroundColor), StartButtonInputs>,
     mut stopwatch: ResMut<StopWatch>,
