@@ -32,7 +32,7 @@ impl Plugin for PlayingPlugin {
                     update_kill_ui,
                     check_time_limit,
                     update_pause_button,
-                    update_start_button,
+                    update_resume_button,
                     (hp::update_player_hp, hp::handle_enemy_death).chain(),
                 )
                     .run_if(in_state(state::GameState::Playing)),
@@ -272,9 +272,9 @@ fn update_kill_ui(
     }
 }
 
-type StartButtonInputs = (Changed<Interaction>, With<ResumeButton>);
-fn update_start_button(
-    mut query: Query<(&Interaction, &mut BackgroundColor), StartButtonInputs>,
+type ResumeButtonInputs = (Changed<Interaction>, With<ResumeButton>);
+fn update_resume_button(
+    mut query: Query<(&Interaction, &mut BackgroundColor), ResumeButtonInputs>,
     mut stopwatch: ResMut<StopWatch>,
     mut game_state: ResMut<NextState<InGameState>>,
 ) {
