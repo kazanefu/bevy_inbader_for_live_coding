@@ -29,6 +29,8 @@ impl Plugin for PlayingPlugin {
                 (
                     update_stopwatch,
                     update_time_ui,
+                    update_kill_ui,
+                    check_time_limit,
                     update_pause_button,
                     update_start_button,
                     (hp::update_player_hp, hp::handle_enemy_death).chain(),
@@ -49,7 +51,10 @@ struct PauseButton;
 struct ResumeButton;
 
 #[derive(Component)]
-struct TimeKillUI;
+struct TimeUI;
+
+#[derive(Component)]
+struct KillUI;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 pub enum InGameState {
@@ -126,7 +131,19 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
             ),
             (
                 Text::new(""),
-                TimeKillUI,
+                TimeUI,
+                TextFont {
+                    font: asset_server
+                        .load("embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"),
+                    font_size: 40.0,
+                    ..default()
+                },
+                TextLayout::new_with_justify(Justify::Center),
+                TextColor::WHITE,
+            ),
+            (
+                Text::new(""),
+                KillUI,
                 TextFont {
                     font: asset_server
                         .load("embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"),
@@ -169,13 +186,18 @@ fn setup_playing(
     commands.spawn(setup_ui(&asset_server));
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(50.0, 50.0))),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color_texture: Some(
-                asset_server.load("embedded://bevy_invader_for_live_coding/img/invader_background.png"),
-            ),
-            unlit: true,
-            ..default()
-        })),
+        MeshMaterial3d(materials.add(
+            StandardMaterial {
+                base_color_texture:
+                    Some(
+                        asset_server.load(
+                            "embedded://bevy_invader_for_live_coding/img/invader_background.png",
+                        ),
+                    ),
+                unlit: true,
+                ..default()
+            },
+        )),
         Transform::from_xyz(0.0, 0.0, -10.0),
         DespawnOnExit(state::GameState::Playing),
     ));
@@ -222,19 +244,31 @@ fn start_stopwatch_res(mut stopwatch: ResMut<StopWatch>) {
     stopwatch.start();
 }
 
-fn update_time_ui(
-    stopwatch: Res<StopWatch>,
-    mut current_score: ResMut<CurrentScore>,
-    mut time_ui_query: Query<&mut Text, With<TimeKillUI>>,
-    mut game_state: ResMut<NextState<crate::state::GameState>>,
-) {
+fn update_time_ui(stopwatch: Res<StopWatch>, mut time_ui_query: Query<&mut Text, With<TimeUI>>) {
     for mut time_ui in &mut time_ui_query {
         let current_time = stopwatch.now();
-        **time_ui = format!("Time: {:.2}s / 100s\n Kill: {}", current_time, current_score.0.kill);
-        current_score.0.survival_time = current_time;
-        if current_time >= TIME_LIMIT {
-            game_state.set(state::GameState::Result);
-        }
+        **time_ui = format!("Time: {:.2}s / 100s", current_time);
+    }
+}
+
+fn check_time_limit(
+    stopwatch: Res<StopWatch>,
+    mut current_score: ResMut<CurrentScore>,
+    mut game_state: ResMut<NextState<crate::state::GameState>>,
+) {
+    let current_time = stopwatch.now();
+    current_score.0.survival_time = current_time;
+    if current_time >= TIME_LIMIT {
+        game_state.set(state::GameState::Result);
+    }
+}
+
+fn update_kill_ui(
+    current_score: ResMut<CurrentScore>,
+    mut kill_ui_query: Query<&mut Text, With<KillUI>>,
+) {
+    for mut kill_ui in &mut kill_ui_query {
+        **kill_ui = format!("Kill: {}", current_score.0.kill);
     }
 }
 
