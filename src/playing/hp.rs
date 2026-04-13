@@ -1,7 +1,20 @@
-use crate::playing::CurrentScore;
+use crate::{playing::CurrentScore, state};
 
 use super::utils::*;
 use bevy::prelude::*;
+
+pub struct HpPlugin;
+
+impl Plugin for HpPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (update_player_hp, handle_enemy_death).chain().run_if(
+                in_state(state::GameState::Playing).and(in_state(super::InGameState::Running)),
+            ),
+        );
+    }
+}
 
 #[derive(Component)]
 pub struct HpUI;

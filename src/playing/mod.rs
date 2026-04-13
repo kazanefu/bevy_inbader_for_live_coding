@@ -20,6 +20,7 @@ impl Plugin for PlayingPlugin {
             .add_plugins(player::PlayerPlugin)
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(enemy::EnemyPlugin)
+            .add_plugins(hp::HpPlugin)
             .add_systems(
                 OnEnter(state::GameState::Playing),
                 (setup_playing, start_stopwatch_res),
@@ -33,7 +34,6 @@ impl Plugin for PlayingPlugin {
                     check_time_limit,
                     update_pause_button,
                     update_resume_button,
-                    (hp::update_player_hp, hp::handle_enemy_death).chain(),
                 )
                     .run_if(in_state(state::GameState::Playing)),
             )
