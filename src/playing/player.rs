@@ -78,7 +78,7 @@ fn move_player(mut query: Query<&mut Control, With<Player>>, keyboard: Res<Butto
     }
 }
 
-pub fn shoot(
+fn shoot(
     mut commands: Commands,
     query: Query<(&Transform, &Character), With<Player>>,
     keyboard: Res<ButtonInput<KeyCode>>,
