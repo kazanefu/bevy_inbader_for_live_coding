@@ -30,7 +30,7 @@ impl Plugin for BulletPlugin {
     }
 }
 
-pub fn move_bullet(query: Query<(&mut Transform, &Bullet)>, time: Res<Time>) {
+fn move_bullet(query: Query<(&mut Transform, &Bullet)>, time: Res<Time>) {
     for (mut transform, bullet) in query {
         transform.translation += bullet.velocity * time.delta_secs();
     }
@@ -69,7 +69,7 @@ pub fn spawn_bullet(
     ));
 }
 
-pub fn bullet_collision(
+fn bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Transform, &Bullet)>,
     mut character_query: Query<(&Transform, &Character, &mut HP)>,
