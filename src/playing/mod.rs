@@ -155,7 +155,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
             ),
             (
                 Text::new(""),
-                hp::HPUi,
+                hp::HpUI,
                 TextFont {
                     font: asset_server
                         .load("embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"),

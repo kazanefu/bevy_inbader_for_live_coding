@@ -4,11 +4,11 @@ use super::utils::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct HPUi;
+pub struct HpUI;
 
 pub fn update_player_hp(
     mut commands: Commands,
-    mut ui_query: Query<&mut Text, With<HPUi>>,
+    mut ui_query: Query<&mut Text, With<HpUI>>,
     player: Query<(Entity, &HP), With<super::player::Player>>,
     mut game_state: ResMut<NextState<crate::state::GameState>>,
 ) {
