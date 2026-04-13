@@ -48,7 +48,7 @@ pub fn spawn_random_enemy(
 }
 
 
-pub fn enemy_shoot(
+fn enemy_shoot(
     mut commands: Commands,
     query: Query<(&Transform, &Character, &mut super::utils::Interval), With<Enemy>>,
     mut meshes: ResMut<Assets<Mesh>>,
