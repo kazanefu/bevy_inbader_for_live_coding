@@ -26,7 +26,7 @@ fn setup_result_ui(commands: &mut Commands, asset_server: &AssetServer, score_li
         .rev()
         .map(|score| score.score())
         .enumerate()
-        .for_each(|(rank, score)| score_score_list.push_str(&format!("No. {}: {score}\n",rank + 1)));
+        .for_each(|(rank, score)| score_score_list.push_str(&format!("No. {}: {:.2}\n",rank + 1,score)));
     commands.spawn((
         DespawnOnExit(state::GameState::Result),
         Node {
