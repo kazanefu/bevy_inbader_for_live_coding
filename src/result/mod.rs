@@ -7,7 +7,10 @@ pub struct ResultPlugin;
 impl Plugin for ResultPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(state::GameState::Result), setup_result_screen)
-            .add_systems(Update, update_retry_button.run_if(in_state(state::GameState::Result)));
+            .add_systems(
+                Update,
+                update_retry_button.run_if(in_state(state::GameState::Result)),
+            );
     }
 }
 
@@ -26,7 +29,9 @@ fn setup_result_ui(commands: &mut Commands, asset_server: &AssetServer, score_li
         .rev()
         .map(|score| score.score())
         .enumerate()
-        .for_each(|(rank, score)| score_score_list.push_str(&format!("No. {}: {:.2}\n",rank + 1,score)));
+        .for_each(|(rank, score)| {
+            score_score_list.push_str(&format!("No. {}: {:.2}\n", rank + 1, score))
+        });
     commands.spawn((
         DespawnOnExit(state::GameState::Result),
         Node {
