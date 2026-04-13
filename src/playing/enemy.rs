@@ -95,7 +95,7 @@ fn setup_enemies(
 
 const ENEMY_SPEED_LIMIT: f32 = 2.0;
 
-pub fn spawn_enemy(
+fn spawn_enemy(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
