@@ -1,4 +1,4 @@
-use crate::{playing::hp::HPUi, state};
+use crate::state;
 use bevy::prelude::*;
 pub mod bullet;
 pub mod enemy;
@@ -49,7 +49,7 @@ struct PauseButton;
 struct ResumeButton;
 
 #[derive(Component)]
-struct TimeUI;
+struct TimeKillUI;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 pub enum InGameState {
@@ -126,7 +126,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
             ),
             (
                 Text::new(""),
-                TimeUI,
+                TimeKillUI,
                 TextFont {
                     font: asset_server
                         .load("embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"),
@@ -138,7 +138,7 @@ fn setup_ui(asset_server: &AssetServer) -> impl Bundle {
             ),
             (
                 Text::new(""),
-                HPUi,
+                hp::HPUi,
                 TextFont {
                     font: asset_server
                         .load("embedded://bevy_invader_for_live_coding/fonts/NotoSansJP-Bold.ttf"),
@@ -225,7 +225,7 @@ fn start_stopwatch_res(mut stopwatch: ResMut<StopWatch>) {
 fn update_time_ui(
     stopwatch: Res<StopWatch>,
     mut current_score: ResMut<CurrentScore>,
-    mut time_ui_query: Query<&mut Text, With<TimeUI>>,
+    mut time_ui_query: Query<&mut Text, With<TimeKillUI>>,
     mut game_state: ResMut<NextState<crate::state::GameState>>,
 ) {
     for mut time_ui in &mut time_ui_query {
